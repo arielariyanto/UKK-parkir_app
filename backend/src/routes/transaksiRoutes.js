@@ -1,12 +1,18 @@
-// const express = require('express');
-// const router = express.Router();
-// const transaksiController = require('../controller/transaksiController');
-// const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
+const express = require('express');
+const router = express.Router();
+const transaksiController = require('../controller/transaksiController');
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 
-// // 🔐 Get semua transaksi (admin / petugas)
-// router.get('/', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.getAll);
+// Get all transaksi (admin / petugas)
+router.get('/', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.getAll);
 
-// // 🔐 Buat transaksi baru (petugas)
-// router.post('/', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.create);
+// Get active transaksi by plat nomor (petugas)
+router.get('/aktif/:plat', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.getActiveByPlat);
 
-// module.exports = router;
+// Create transaksi (parkir masuk) - petugas
+router.post('/', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.create);
+
+// Update transaksi (parkir keluar) - petugas
+router.put('/:id/keluar', authMiddleware, roleMiddleware('admin', 'petugas'), transaksiController.processKeluar);
+
+module.exports = router;

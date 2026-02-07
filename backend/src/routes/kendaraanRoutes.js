@@ -1,9 +1,19 @@
-// // src/routes/kendaraanRoutes.js
-// const express = require('express');
-// const router = express.Router();
-// const kendaraanController = require('../controller/kendaraanController'); // ⚠️ path harus benar
+// src/routes/kendaraanRoutes.js
+const express = require('express');
+const router = express.Router();
+const kendaraanController = require('../controller/kendaraanController');
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 
-// router.get('/', kendaraanController.getAllKendaraan);
-// router.post('/', kendaraanController.createKendaraan);
+// Get all kendaraan
+router.get('/', kendaraanController.getAllKendaraan);
 
-// module.exports = router;
+// Create kendaraan
+router.post('/', authMiddleware, roleMiddleware('admin', 'petugas'), kendaraanController.createKendaraan);
+
+// Update kendaraan (admin only)
+router.put('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.updateKendaraan);
+
+// Delete kendaraan (admin only)
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.deleteKendaraan);
+
+module.exports = router;
