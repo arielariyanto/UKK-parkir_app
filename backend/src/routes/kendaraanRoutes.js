@@ -1,11 +1,9 @@
-const express = require("express");
-const router = express.Router();
-const kendaraanController = require("../controller/kendaraanController");
+// // src/routes/kendaraanRoutes.js
+// const express = require('express');
+// const router = express.Router();
+// const kendaraanController = require('../controller/kendaraanController'); // ⚠️ path harus benar
 
-router.get("/", kendaraanController.getAll);
-router.post("/", kendaraanController.create);
-router.get("/:id", kendaraanController.getById);
-router.put("/:id", kendaraanController.update);
-router.delete("/:id", kendaraanController.remove);
+// router.get('/', kendaraanController.getAllKendaraan);
+// router.post('/', kendaraanController.createKendaraan);
 
-module.exports = router;
+// module.exports = router;
