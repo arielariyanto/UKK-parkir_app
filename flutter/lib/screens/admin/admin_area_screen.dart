@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../config/theme_config.dart';
-import '../../config/api_config.dart';
 import '../../models/area_model.dart';
-import '../../services/api_service.dart';
+import '../../services/area_service.dart';
 import '../../widgets/admin_sidebar.dart';
 
 class AdminAreaScreen extends StatefulWidget {
@@ -25,10 +25,9 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
   Future<void> _loadAreas() async {
     setState(() => isLoading = true);
     try {
-      final response = await ApiService.get(ApiConfig.area, auth: false);
-      final data = ApiService.handleResponse(response);
+      final data = await AreaService.getAllAreas();
       setState(() {
-        areas = (data['data'] as List).map((json) => Area.fromJson(json)).toList();
+        areas = data;
         isLoading = false;
       });
     } catch (e) {
@@ -38,51 +37,48 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
           SnackBar(
             content: Text('Error memuat data area: $e'),
             backgroundColor: AppTheme.errorColor,
-            duration: const Duration(seconds: 3),
           ),
         );
       }
     }
   }
 
-  Future<void> _deleteArea(int id) async {
-    try {
-      await ApiService.delete('${ApiConfig.area}/$id', auth: true);
-      _loadAreas();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Area berhasil dihapus')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
   void _showAreaDialog({Area? area}) {
     final nameController = TextEditingController(text: area?.namaArea);
-    final capacityController = TextEditingController(text: area?.kapasitas.toString());
+    final capacityController = TextEditingController(
+      text: area != null ? area.kapasitas.toString() : '',
+    );
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(area == null ? 'Tambah Area' : 'Edit Area'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nama Area'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: capacityController,
-              decoration: const InputDecoration(labelText: 'Kapasitas'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+        title: Text(area == null ? 'Tambah Area Parkir' : 'Edit Area Parkir'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Area',
+                  prefixIcon: Icon(Icons.location_on),
+                  hintText: 'Contoh: Area A, Lantai 1',
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: capacityController,
+                decoration: const InputDecoration(
+                  labelText: 'Kapasitas',
+                  prefixIcon: Icon(Icons.local_parking),
+                  hintText: 'Jumlah slot parkir',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -91,27 +87,55 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final data = {
-                'nama_area': nameController.text,
-                'kapasitas': int.parse(capacityController.text),
-              };
+              if (nameController.text.isEmpty || capacityController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Semua field harus diisi')),
+                );
+                return;
+              }
+
+              final kapasitas = int.tryParse(capacityController.text);
+              if (kapasitas == null || kapasitas <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Kapasitas harus lebih dari 0')),
+                );
+                return;
+              }
 
               try {
                 if (area == null) {
-                  await ApiService.post(ApiConfig.area, data, auth: true);
+                  await AreaService.createArea(
+                    namaArea: nameController.text,
+                    kapasitas: kapasitas,
+                  );
                 } else {
-                  await ApiService.put('${ApiConfig.area}/${area.idArea}', data, auth: true);
+                  await AreaService.updateArea(
+                    idArea: area.idArea!,
+                    namaArea: nameController.text,
+                    kapasitas: kapasitas,
+                  );
                 }
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   _loadAreas();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(area == null ? 'Area berhasil ditambahkan' : 'Area berhasil diupdate')),
+                    SnackBar(
+                      content: Text(area == null 
+                          ? 'Area berhasil ditambahkan' 
+                          : 'Area berhasil diupdate'),
+                      backgroundColor: AppTheme.accentColor,
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
                 }
               }
             },
@@ -120,6 +144,51 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteArea(Area area) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: Text('Hapus area "${area.namaArea}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await AreaService.deleteArea(area.idArea!);
+        _loadAreas();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Area berhasil dihapus'),
+              backgroundColor: AppTheme.accentColor,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -133,6 +202,7 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAreaDialog(),
+            tooltip: 'Tambah Area',
           ),
         ],
       ),
@@ -145,66 +215,101 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
                     onRefresh: _loadAreas,
-                    child: ListView(
-                      padding: EdgeInsets.all(isMobile ? 16 : 24),
-                      children: areas.map((area) => Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: ListTile(
-                          leading: const Icon(Icons.location_on, color: AppTheme.primaryColor, size: 40),
-                          title: Text(area.namaArea, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 8),
-                              Text('Kapasitas: ${area.kapasitas} | Terisi: ${area.terisi} | Tersedia: ${area.tersedia}'),
-                              const SizedBox(height: 8),
-                              LinearProgressIndicator(
-                                value: area.terisi / area.kapasitas,
-                                backgroundColor: Colors.grey[200],
-                                valueColor: AlwaysStoppedAnimation(
-                                  area.terisi / area.kapasitas > 0.8 ? AppTheme.errorColor : AppTheme.accentColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
-                                onPressed: () => _showAreaDialog(area: area),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Konfirmasi'),
-                                      content: Text('Hapus area ${area.namaArea}?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Batal'),
+                    child: areas.isEmpty
+                        ? const Center(child: Text('Belum ada data area parkir'))
+                        : ListView.builder(
+                            padding: EdgeInsets.all(isMobile ? 16 : 24),
+                            itemCount: areas.length,
+                            itemBuilder: (context, index) {
+                              final area = areas[index];
+                              final occupancyRate = area.terisi / area.kapasitas;
+                              
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                elevation: 2,
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(16),
+                                  leading: Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      color: AppTheme.primaryColor,
+                                      size: 32,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    area.namaArea,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.local_parking, size: 16, color: Colors.grey),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Kapasitas: ${area.kapasitas} | Terisi: ${area.terisi} | Tersedia: ${area.tersedia}',
+                                              style: TextStyle(color: Colors.grey[700]),
+                                            ),
+                                          ],
                                         ),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            _deleteArea(area.idArea!);
-                                          },
-                                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
-                                          child: const Text('Hapus'),
+                                        const SizedBox(height: 12),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: LinearProgressIndicator(
+                                            value: occupancyRate,
+                                            minHeight: 8,
+                                            backgroundColor: Colors.grey[200],
+                                            valueColor: AlwaysStoppedAnimation(
+                                              occupancyRate > 0.8
+                                                  ? AppTheme.errorColor
+                                                  : occupancyRate > 0.5
+                                                      ? Colors.orange
+                                                      : AppTheme.accentColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${(occupancyRate * 100).toStringAsFixed(0)}% Terisi',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                            ],
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                                        onPressed: () => _showAreaDialog(area: area),
+                                        tooltip: 'Edit',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: AppTheme.errorColor),
+                                        onPressed: () => _deleteArea(area),
+                                        tooltip: 'Hapus',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      )).toList(),
-                    ),
                   ),
           ),
         ],
@@ -212,4 +317,3 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
     );
   }
 }
-

@@ -4,7 +4,8 @@ class ApiConfig {
   
   // Endpoints
   static const String login = '/user/login';
-  static const String register = '/register';
+  static const String logout = '/user/logout';
+  static const String register = '/user/register';
   static const String profile = '/user/profile';
   static const String users = '/user';
   

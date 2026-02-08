@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../config/theme_config.dart';
-import '../../config/api_config.dart';
-import '../../models/kendaraan_model.dart';
-import '../../services/api_service.dart';
+import '../../models/jenis_kendaraan_model.dart';
+import '../../services/jenis_kendaraan_service.dart';
 import '../../widgets/admin_sidebar.dart';
 
 class AdminKendaraanScreen extends StatefulWidget {
@@ -13,22 +12,21 @@ class AdminKendaraanScreen extends StatefulWidget {
 }
 
 class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
-  List<Kendaraan> kendaraans = [];
+  List<JenisKendaraan> jenisKendaraanList = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadKendaraans();
+    _loadJenisKendaraan();
   }
 
-  Future<void> _loadKendaraans() async {
+  Future<void> _loadJenisKendaraan() async {
     setState(() => isLoading = true);
     try {
-      final response = await ApiService.get(ApiConfig.kendaraan, auth: false);
-      final data = ApiService.handleResponse(response);
+      final data = await JenisKendaraanService.getAllJenisKendaraan();
       setState(() {
-        kendaraans = (data['data'] as List).map((json) => Kendaraan.fromJson(json)).toList();
+        jenisKendaraanList = data;
         isLoading = false;
       });
     } catch (e) {
@@ -36,73 +34,28 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error memuat data kendaraan: $e'),
+            content: Text('Error memuat data: $e'),
             backgroundColor: AppTheme.errorColor,
-            duration: const Duration(seconds: 3),
           ),
         );
       }
     }
   }
 
-  Future<void> _deleteKendaraan(int id) async {
-    try {
-      await ApiService.delete('${ApiConfig.kendaraan}/$id', auth: true);
-      _loadKendaraans();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kendaraan berhasil dihapus')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
-  void _showKendaraanDialog({Kendaraan? kendaraan}) {
-    final platController = TextEditingController(text: kendaraan?.platNomor);
-    final warnaController = TextEditingController(text: kendaraan?.warna);
-    final pemilikController = TextEditingController(text: kendaraan?.pemilik);
-    String selectedJenis = kendaraan?.jenisKendaraan ?? 'motor';
+  void _showJenisDialog({JenisKendaraan? jenis}) {
+    final controller = TextEditingController(text: jenis?.jenisKendaraan);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(kendaraan == null ? 'Tambah Kendaraan' : 'Edit Kendaraan'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: platController,
-                decoration: const InputDecoration(labelText: 'Plat Nomor'),
-                textCapitalization: TextCapitalization.characters,
-              ),
-              const SizedBox(height: 12),
-              StatefulBuilder(
-                builder: (context, setState) => DropdownButtonFormField<String>(
-                  value: selectedJenis,
-                  decoration: const InputDecoration(labelText: 'Jenis Kendaraan'),
-                  items: ['motor', 'mobil']
-                      .map((jenis) => DropdownMenuItem(value: jenis, child: Text(jenis.toUpperCase())))
-                      .toList(),
-                  onChanged: (value) => setState(() => selectedJenis = value!),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: warnaController,
-                decoration: const InputDecoration(labelText: 'Warna (opsional)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: pemilikController,
-                decoration: const InputDecoration(labelText: 'Pemilik (opsional)'),
-              ),
-            ],
+        title: Text(jenis == null ? 'Tambah Jenis Kendaraan' : 'Edit Jenis Kendaraan'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Jenis Kendaraan',
+            hintText: 'Contoh: Motor, Mobil, Truk',
           ),
+          textCapitalization: TextCapitalization.words,
         ),
         actions: [
           TextButton(
@@ -111,29 +64,45 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final data = {
-                'plat_nomor': platController.text.toUpperCase(),
-                'jenis_kendaraan': selectedJenis,
-                if (warnaController.text.isNotEmpty) 'warna': warnaController.text,
-                if (pemilikController.text.isNotEmpty) 'pemilik': pemilikController.text,
-              };
+              if (controller.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Jenis kendaraan harus diisi')),
+                );
+                return;
+              }
 
               try {
-                if (kendaraan == null) {
-                  await ApiService.post(ApiConfig.kendaraan, data, auth: true);
+                if (jenis == null) {
+                  await JenisKendaraanService.createJenisKendaraan(
+                    jenisKendaraan: controller.text,
+                  );
                 } else {
-                  await ApiService.put('${ApiConfig.kendaraan}/${kendaraan.idKendaraan}', data, auth: true);
+                  await JenisKendaraanService.updateJenisKendaraan(
+                    idKendaraan: jenis.idKendaraan,
+                    jenisKendaraan: controller.text,
+                  );
                 }
+
                 if (context.mounted) {
                   Navigator.pop(context);
-                  _loadKendaraans();
+                  _loadJenisKendaraan();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(kendaraan == null ? 'Kendaraan berhasil ditambahkan' : 'Kendaraan berhasil diupdate')),
+                    SnackBar(
+                      content: Text(jenis == null 
+                          ? 'Jenis kendaraan berhasil ditambahkan' 
+                          : 'Jenis kendaraan berhasil diupdate'),
+                      backgroundColor: AppTheme.accentColor,
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
                 }
               }
             },
@@ -144,17 +113,63 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
     );
   }
 
+  Future<void> _deleteJenis(JenisKendaraan jenis) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: Text('Hapus jenis kendaraan "${jenis.jenisKendaraan}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await JenisKendaraanService.deleteJenisKendaraan(jenis.idKendaraan);
+        _loadJenisKendaraan();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Jenis kendaraan berhasil dihapus'),
+              backgroundColor: AppTheme.accentColor,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelola Kendaraan'),
+        title: const Text('Kelola Jenis Kendaraan'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showKendaraanDialog(),
+            onPressed: () => _showJenisDialog(),
+            tooltip: 'Tambah Jenis Kendaraan',
           ),
         ],
       ),
@@ -166,69 +181,68 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
-                    onRefresh: _loadKendaraans,
-                    child: ListView(
-                      padding: EdgeInsets.all(isMobile ? 16 : 24),
-                      children: [
-                        Card(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              columns: const [
-                                DataColumn(label: Text('Plat Nomor')),
-                                DataColumn(label: Text('Jenis')),
-                                DataColumn(label: Text('Warna')),
-                                DataColumn(label: Text('Pemilik')),
-                                DataColumn(label: Text('Aksi')),
-                              ],
-                              rows: kendaraans.map((k) => DataRow(cells: [
-                                DataCell(Text(k.platNomor, style: const TextStyle(fontWeight: FontWeight.bold))),
-                                DataCell(Chip(
-                                  label: Text(k.jenisKendaraan.toUpperCase()),
-                                  backgroundColor: k.jenisKendaraan == 'motor' ? AppTheme.primaryColor : AppTheme.secondaryColor,
-                                )),
-                                DataCell(Text(k.warna ?? '-')),
-                                DataCell(Text(k.pemilik ?? '-')),
-                                DataCell(Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
-                                      onPressed: () => _showKendaraanDialog(kendaraan: k),
+                    onRefresh: _loadJenisKendaraan,
+                    child: jenisKendaraanList.isEmpty
+                        ? const Center(child: Text('Belum ada data jenis kendaraan'))
+                        : ListView.builder(
+                            padding: EdgeInsets.all(isMobile ? 16 : 24),
+                            itemCount: jenisKendaraanList.length,
+                            itemBuilder: (context, index) {
+                              final jenis = jenisKendaraanList[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                elevation: 2,
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(16),
+                                  leading: Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Konfirmasi'),
-                                            content: Text('Hapus kendaraan ${k.platNomor}?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text('Batal'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                  _deleteKendaraan(k.idKendaraan!);
-                                                },
-                                                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
-                                                child: const Text('Hapus'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
+                                    child: const Icon(
+                                      Icons.category,
+                                      color: AppTheme.primaryColor,
+                                      size: 32,
                                     ),
-                                  ],
-                                )),
-                              ])).toList(),
-                            ),
+                                  ),
+                                  title: Text(
+                                    jenis.jenisKendaraan,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      'ID: ${jenis.idKendaraan}',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                                        onPressed: () => _showJenisDialog(jenis: jenis),
+                                        tooltip: 'Edit',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: AppTheme.errorColor),
+                                        onPressed: () => _deleteJenis(jenis),
+                                        tooltip: 'Hapus',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      ],
-                    ),
                   ),
           ),
         ],

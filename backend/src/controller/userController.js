@@ -15,11 +15,14 @@ const login = async (req, res) => {
       });
     }
 
-    // Cari user
+    // Cari user (hapus validasi status_aktif)
     const [rows] = await pool.query(
-      'SELECT * FROM tb_user WHERE username = ? AND status_aktif = 1',
+      'SELECT * FROM tb_user WHERE username = ?',
       [username]
     );
+
+    console.log(`Login attempt for username: ${username}`);
+    console.log(`User found: ${rows.length > 0}`);
 
     if (rows.length === 0) {
       return res.status(401).json({
@@ -29,9 +32,11 @@ const login = async (req, res) => {
     }
 
     const user = rows[0];
+    console.log(`User data: ${JSON.stringify({ id: user.id_user, username: user.username, role: user.role, status_aktif: user.status_aktif })}`);
 
     // Verifikasi password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log(`Password valid: ${isPasswordValid}`);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -39,6 +44,13 @@ const login = async (req, res) => {
         message: 'Username atau password salah',
       });
     }
+
+    // Set status_aktif = 1 (user sedang login)
+    await pool.query(
+      'UPDATE tb_user SET status_aktif = 1 WHERE id_user = ?',
+      [user.id_user]
+    );
+    console.log(`Status aktif updated to 1 for user ${user.id_user}`);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -107,6 +119,34 @@ const getProfile = async (req, res) => {
   }
 };
 
+// Logout
+const logout = async (req, res) => {
+  try {
+    // Set status_aktif = 0 (user sedang logout)
+    await pool.query(
+      'UPDATE tb_user SET status_aktif = 0 WHERE id_user = ?',
+      [req.user.id_user]
+    );
+
+    // Log aktivitas
+    await pool.query(
+      'INSERT INTO tb_log_aktivitas (id_user, aktivitas) VALUES (?, ?)',
+      [req.user.id_user, 'Logout dari sistem']
+    );
+
+    res.json({
+      success: true,
+      message: 'Logout berhasil',
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan saat logout',
+    });
+  }
+};
+
 // Register (hanya untuk admin)
 const register = async (req, res) => {
   try {
@@ -170,7 +210,10 @@ const register = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id_user, nama_lengkap, username, role, status_aktif FROM tb_user ORDER BY nama_lengkap ASC'
+      `SELECT id_user, nama_lengkap, username, role, status_aktif 
+       FROM tb_user 
+       WHERE role IN ('admin', 'petugas', 'owner')
+       ORDER BY nama_lengkap ASC`
     );
 
     res.json({
@@ -190,7 +233,9 @@ const getAllUsers = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama_lengkap, username, password, role, status_aktif } = req.body;
+    const { nama_lengkap, username, password, role } = req.body;
+
+    console.log(`Update user ${id}:`, { nama_lengkap, username, role, hasPassword: !!password });
 
     const [existing] = await pool.query(
       'SELECT * FROM tb_user WHERE id_user = ?',
@@ -219,9 +264,9 @@ const updateUser = async (req, res) => {
       }
     }
 
-    // Update query
-    let updateQuery = 'UPDATE tb_user SET nama_lengkap = ?, username = ?, role = ?, status_aktif = ?';
-    let params = [nama_lengkap, username, role, status_aktif !== undefined ? status_aktif : 1];
+    // Update query (TIDAK update status_aktif, karena dikelola otomatis saat login/logout)
+    let updateQuery = 'UPDATE tb_user SET nama_lengkap = ?, username = ?, role = ?';
+    let params = [nama_lengkap, username, role];
 
     // If password provided, hash and update it
     if (password) {
@@ -301,6 +346,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   login,
+  logout,
   getProfile,
   register,
   getAllUsers,

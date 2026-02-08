@@ -45,6 +45,15 @@ class AuthService {
 
   // Logout
   static Future<void> logout() async {
+    try {
+      // Panggil API logout untuk set status_aktif = 0
+      await ApiService.post(ApiConfig.logout, {}, auth: true);
+    } catch (e) {
+      // Ignore error, tetap lanjutkan logout
+      print('Logout API error: $e');
+    }
+    
+    // Hapus token dan user data
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('user');

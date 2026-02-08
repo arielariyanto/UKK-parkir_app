@@ -1,19 +1,18 @@
-// src/routes/kendaraanRoutes.js
 const express = require('express');
 const router = express.Router();
 const kendaraanController = require('../controller/kendaraanController');
 const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 
-// Get all kendaraan
-router.get('/', kendaraanController.getAllKendaraan);
+// 🔓 Public: ambil semua jenis kendaraan (untuk dropdown)
+router.get('/', kendaraanController.getAllJenisKendaraan);
 
-// Create kendaraan
-router.post('/', authMiddleware, roleMiddleware('admin', 'petugas'), kendaraanController.createKendaraan);
+// 🔐 Protected + Admin only: create jenis kendaraan
+router.post('/', authMiddleware, roleMiddleware('admin'), kendaraanController.createJenisKendaraan);
 
-// Update kendaraan (admin only)
-router.put('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.updateKendaraan);
+// 🔐 Protected + Admin only: update jenis kendaraan
+router.put('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.updateJenisKendaraan);
 
-// Delete kendaraan (admin only)
-router.delete('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.deleteKendaraan);
+// 🔐 Protected + Admin only: delete jenis kendaraan
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), kendaraanController.deleteJenisKendaraan);
 
 module.exports = router;

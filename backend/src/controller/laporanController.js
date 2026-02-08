@@ -292,7 +292,7 @@ const getLaporanLogAktivitas = async (req, res) => {
       SELECT 
         l.id_log,
         l.aktivitas,
-        l.waktu_aktivitas,
+        l.created_at as waktu_aktivitas,
         u.nama_lengkap,
         u.username,
         u.role
@@ -303,7 +303,7 @@ const getLaporanLogAktivitas = async (req, res) => {
         const params = [];
 
         if (tanggal_mulai && tanggal_akhir) {
-            query += ' AND DATE(l.waktu_aktivitas) BETWEEN ? AND ?';
+            query += ' AND DATE(l.created_at) BETWEEN ? AND ?';
             params.push(tanggal_mulai, tanggal_akhir);
         }
 
@@ -312,7 +312,7 @@ const getLaporanLogAktivitas = async (req, res) => {
             params.push(id_user);
         }
 
-        query += ' ORDER BY l.waktu_aktivitas DESC LIMIT 100';
+        query += ' ORDER BY l.created_at DESC LIMIT 100';
 
         const [rows] = await pool.query(query, params);
 

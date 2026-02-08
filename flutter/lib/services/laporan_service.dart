@@ -44,4 +44,9 @@ class LaporanService {
     final response = await ApiService.get(endpoint, auth: true);
     return ApiService.handleResponse(response);
   }
+
+  static Future<Map<String, dynamic>> getAllUsers() async {
+    final response = await ApiService.get(ApiConfig.users, auth: true);
+    return ApiService.handleResponse(response);
+  }
 }
