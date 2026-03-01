@@ -159,6 +159,7 @@ class _AdminLogScreenState extends State<AdminLogScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Log Aktivitas'),
+        automaticallyImplyLeading: !isMobile,
         actions: [
           if (_selectedRole != null || _selectedDate != null)
             IconButton(

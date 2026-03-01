@@ -279,15 +279,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola User'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showUserDialog(),
-            tooltip: 'Tambah User',
-          ),
-        ],
+        automaticallyImplyLeading: !isMobile,
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/users') : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showUserDialog(),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah User'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
       body: Row(
         children: [
           if (!isMobile) const AdminSidebar(currentRoute: '/admin/users'),

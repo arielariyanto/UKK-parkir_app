@@ -198,15 +198,15 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Area Parkir'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAreaDialog(),
-            tooltip: 'Tambah Area',
-          ),
-        ],
+        automaticallyImplyLeading: !isMobile, // No back button on desktop
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/area') : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAreaDialog(),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Area'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
       body: Row(
         children: [
           if (!isMobile) const AdminSidebar(currentRoute: '/admin/area'),

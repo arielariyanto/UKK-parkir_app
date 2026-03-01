@@ -97,6 +97,12 @@ class AdminSidebar extends StatelessWidget {
                 ),
                 _buildMenuItem(
                   context,
+                  icon: Icons.local_parking,
+                  title: 'Riwayat Parkir',
+                  route: '/admin/riwayat',
+                ),
+                _buildMenuItem(
+                  context,
                   icon: Icons.history,
                   title: 'Log Aktivitas',
                   route: '/admin/log',

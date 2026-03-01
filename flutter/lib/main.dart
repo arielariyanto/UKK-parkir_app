@@ -9,6 +9,7 @@ import 'screens/admin/admin_area_screen.dart';
 import 'screens/admin/admin_kendaraan_screen.dart';
 import 'screens/admin/admin_transaksi_screen.dart';
 import 'screens/admin/admin_log_screen.dart';
+import 'screens/admin/admin_riwayat_screen.dart';
 import 'screens/petugas/petugas_dashboard_screen.dart';
 import 'screens/owner/owner_dashboard_screen.dart';
 import 'screens/owner/owner_laporan_screen.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/admin/kendaraan': (context) => const AdminKendaraanScreen(),
         '/admin/transaksi': (context) => const AdminTransaksiScreen(),
         '/admin/log': (context) => const AdminLogScreen(),
+        '/admin/riwayat': (context) => const AdminRiwayatScreen(),
         // Petugas routes
         '/petugas/dashboard': (context) => const PetugasDashboardScreen(),
         // Owner routes
@@ -64,35 +66,42 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 1));
-    
-    final isLoggedIn = await AuthService.isLoggedIn();
-    
-    if (!mounted) return;
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final isLoggedIn = await AuthService.isLoggedIn();
+      
+      if (!mounted) return;
 
-    if (isLoggedIn) {
-      final user = await AuthService.getUserInfo();
-      if (user != null) {
-        String route;
-        switch (user.role) {
-          case 'admin':
-            route = '/admin/dashboard';
-            break;
-          case 'petugas':
-            route = '/petugas/dashboard';
-            break;
-          case 'owner':
-            route = '/owner/dashboard';
-            break;
-          default:
-            route = '/login';
+      if (isLoggedIn) {
+        final user = await AuthService.getUserInfo();
+        if (user != null) {
+          String route;
+          switch (user.role) {
+            case 'admin':
+              route = '/admin/dashboard';
+              break;
+            case 'petugas':
+              route = '/petugas/dashboard';
+              break;
+            case 'owner':
+              route = '/owner/dashboard';
+              break;
+            default:
+              route = '/login';
+          }
+          Navigator.pushReplacementNamed(context, route);
+          return;
         }
-        Navigator.pushReplacementNamed(context, route);
-        return;
+      }
+
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      // Fallback ke login jika ada error (terutama di web)
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
       }
     }
-
-    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override

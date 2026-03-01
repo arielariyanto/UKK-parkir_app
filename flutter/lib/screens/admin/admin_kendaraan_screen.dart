@@ -165,15 +165,15 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Jenis Kendaraan'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showJenisDialog(),
-            tooltip: 'Tambah Jenis Kendaraan',
-          ),
-        ],
+        automaticallyImplyLeading: !isMobile,
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/kendaraan') : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showJenisDialog(),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Jenis'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
       body: Row(
         children: [
           if (!isMobile) const AdminSidebar(currentRoute: '/admin/kendaraan'),

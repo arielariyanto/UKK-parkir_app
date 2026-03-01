@@ -46,6 +46,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard Admin'),
+        automaticallyImplyLeading: !isMobile,
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/dashboard') : null,
       body: Row(

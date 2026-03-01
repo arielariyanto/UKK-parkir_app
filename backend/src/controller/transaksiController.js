@@ -203,8 +203,11 @@ exports.processKeluar = async (req, res) => {
         const waktuMasuk = new Date(data.waktu_masuk);
         const waktuKeluar = new Date();
         const durasiMs = waktuKeluar - waktuMasuk;
+        const durasiMenit = durasiMs / (1000 * 60);
         const durasiJam = Math.ceil(durasiMs / (1000 * 60 * 60)); // Round up to nearest hour
-        const biayaTotal = durasiJam * (data.tarif_per_jam || 0);
+
+        // Gratis jika parkir kurang dari 5 menit
+        const biayaTotal = durasiMenit < 5 ? 0 : durasiJam * (data.tarif_per_jam || 0);
 
         // Update transaksi
         await pool.query(`
@@ -294,6 +297,37 @@ exports.delete = async (req, res) => {
         });
     } catch (err) {
         console.error('Delete transaksi error:', err);
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// Get transaksi by petugas (riwayat parkir per petugas)
+exports.getByPetugas = async (req, res) => {
+    try {
+        const { id_user } = req.params;
+
+        const [rows] = await pool.query(`
+            SELECT t.*,
+                   k.jenis_kendaraan,
+                   a.nama_area,
+                   u.nama_lengkap as nama_petugas
+            FROM tb_transaksi t
+            LEFT JOIN tb_kendaraan k ON t.id_kendaraan = k.id_kendaraan
+            LEFT JOIN tb_area_parkir a ON t.id_area = a.id_area
+            LEFT JOIN tb_user u ON t.id_user = u.id_user
+            WHERE t.id_user = ? AND t.status = 'keluar'
+            ORDER BY t.waktu_keluar DESC
+        `, [id_user]);
+
+        res.json({
+            success: true,
+            data: rows
+        });
+    } catch (err) {
+        console.error('Get transaksi by petugas error:', err);
         res.status(500).json({
             success: false,
             message: err.message

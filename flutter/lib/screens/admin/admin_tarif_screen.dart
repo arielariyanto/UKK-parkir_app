@@ -237,15 +237,15 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Tarif Parkir'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showTarifDialog(),
-            tooltip: 'Tambah Tarif',
-          ),
-        ],
+        automaticallyImplyLeading: !isMobile,
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/tarif') : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showTarifDialog(),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Tarif'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
       body: Row(
         children: [
           if (!isMobile) const AdminSidebar(currentRoute: '/admin/tarif'),

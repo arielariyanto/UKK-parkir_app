@@ -44,6 +44,7 @@ class _AdminTransaksiScreenState extends State<AdminTransaksiScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Data Transaksi'),
+        automaticallyImplyLeading: !isMobile,
       ),
       drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/transaksi') : null,
       body: Row(
