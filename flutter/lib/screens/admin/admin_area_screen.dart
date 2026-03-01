@@ -121,8 +121,8 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
                   _loadAreas();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(area == null 
-                          ? 'Area berhasil ditambahkan' 
+                      content: Text(area == null
+                          ? 'Area berhasil ditambahkan'
                           : 'Area berhasil diupdate'),
                       backgroundColor: AppTheme.accentColor,
                     ),
@@ -193,127 +193,116 @@ class _AdminAreaScreenState extends State<AdminAreaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Area Parkir'),
-        automaticallyImplyLeading: !isMobile, // No back button on desktop
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/area') : null,
+      drawer: const AdminSidebar(currentRoute: '/admin/area'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAreaDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Tambah Area'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/area'),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadAreas,
-                    child: areas.isEmpty
-                        ? const Center(child: Text('Belum ada data area parkir'))
-                        : ListView.builder(
-                            padding: EdgeInsets.all(isMobile ? 16 : 24),
-                            itemCount: areas.length,
-                            itemBuilder: (context, index) {
-                              final area = areas[index];
-                              final occupancyRate = area.terisi / area.kapasitas;
-                              
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                elevation: 2,
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  leading: Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.location_on,
-                                      color: AppTheme.primaryColor,
-                                      size: 32,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    area.namaArea,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.local_parking, size: 16, color: Colors.grey),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Kapasitas: ${area.kapasitas} | Terisi: ${area.terisi} | Tersedia: ${area.tersedia}',
-                                              style: TextStyle(color: Colors.grey[700]),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 12),
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: LinearProgressIndicator(
-                                            value: occupancyRate,
-                                            minHeight: 8,
-                                            backgroundColor: Colors.grey[200],
-                                            valueColor: AlwaysStoppedAnimation(
-                                              occupancyRate > 0.8
-                                                  ? AppTheme.errorColor
-                                                  : occupancyRate > 0.5
-                                                      ? Colors.orange
-                                                      : AppTheme.accentColor,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${(occupancyRate * 100).toStringAsFixed(0)}% Terisi',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadAreas,
+              child: areas.isEmpty
+                  ? const Center(child: Text('Belum ada data area parkir'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      itemCount: areas.length,
+                      itemBuilder: (context, index) {
+                        final area = areas[index];
+                        final occupancyRate = area.terisi / area.kapasitas;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          elevation: 2,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            leading: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.location_on,
+                                color: AppTheme.primaryColor,
+                                size: 32,
+                              ),
+                            ),
+                            title: Text(
+                              area.namaArea,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
-                                        onPressed: () => _showAreaDialog(area: area),
-                                        tooltip: 'Edit',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                        onPressed: () => _deleteArea(area),
-                                        tooltip: 'Hapus',
+                                      const Icon(Icons.local_parking, size: 16, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          'Kapasitas: ${area.kapasitas} | Terisi: ${area.terisi} | Tersedia: ${area.tersedia}',
+                                          style: TextStyle(color: Colors.grey[700]),
+                                        ),
                                       ),
                                     ],
                                   ),
+                                  const SizedBox(height: 12),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: LinearProgressIndicator(
+                                      value: occupancyRate,
+                                      minHeight: 8,
+                                      backgroundColor: Colors.grey[200],
+                                      valueColor: AlwaysStoppedAnimation(
+                                        occupancyRate > 0.8
+                                            ? AppTheme.errorColor
+                                            : occupancyRate > 0.5
+                                                ? Colors.orange
+                                                : AppTheme.accentColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${(occupancyRate * 100).toStringAsFixed(0)}% Terisi',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                                  onPressed: () => _showAreaDialog(area: area),
+                                  tooltip: 'Edit',
                                 ),
-                              );
-                            },
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: AppTheme.errorColor),
+                                  onPressed: () => _deleteArea(area),
+                                  tooltip: 'Hapus',
+                                ),
+                              ],
+                            ),
                           ),
-                  ),
-          ),
-        ],
-      ),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

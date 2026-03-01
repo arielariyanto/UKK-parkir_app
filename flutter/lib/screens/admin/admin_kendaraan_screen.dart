@@ -88,8 +88,8 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
                   _loadJenisKendaraan();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(jenis == null 
-                          ? 'Jenis kendaraan berhasil ditambahkan' 
+                      content: Text(jenis == null
+                          ? 'Jenis kendaraan berhasil ditambahkan'
                           : 'Jenis kendaraan berhasil diupdate'),
                       backgroundColor: AppTheme.accentColor,
                     ),
@@ -160,93 +160,80 @@ class _AdminKendaraanScreenState extends State<AdminKendaraanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Jenis Kendaraan'),
-        automaticallyImplyLeading: !isMobile,
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/kendaraan') : null,
+      drawer: const AdminSidebar(currentRoute: '/admin/kendaraan'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showJenisDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Tambah Jenis'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/kendaraan'),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadJenisKendaraan,
-                    child: jenisKendaraanList.isEmpty
-                        ? const Center(child: Text('Belum ada data jenis kendaraan'))
-                        : ListView.builder(
-                            padding: EdgeInsets.all(isMobile ? 16 : 24),
-                            itemCount: jenisKendaraanList.length,
-                            itemBuilder: (context, index) {
-                              final jenis = jenisKendaraanList[index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                elevation: 2,
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  leading: Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.category,
-                                      color: AppTheme.primaryColor,
-                                      size: 32,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    jenis.jenisKendaraan,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Text(
-                                      'ID: ${jenis.idKendaraan}',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
-                                        onPressed: () => _showJenisDialog(jenis: jenis),
-                                        tooltip: 'Edit',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                        onPressed: () => _deleteJenis(jenis),
-                                        tooltip: 'Hapus',
-                                      ),
-                                    ],
-                                  ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadJenisKendaraan,
+              child: jenisKendaraanList.isEmpty
+                  ? const Center(child: Text('Belum ada data jenis kendaraan'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      itemCount: jenisKendaraanList.length,
+                      itemBuilder: (context, index) {
+                        final jenis = jenisKendaraanList[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          elevation: 2,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            leading: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.category,
+                                color: AppTheme.primaryColor,
+                                size: 32,
+                              ),
+                            ),
+                            title: Text(
+                              jenis.jenisKendaraan,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                'ID: ${jenis.idKendaraan}',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                                  onPressed: () => _showJenisDialog(jenis: jenis),
+                                  tooltip: 'Edit',
                                 ),
-                              );
-                            },
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: AppTheme.errorColor),
+                                  onPressed: () => _deleteJenis(jenis),
+                                  tooltip: 'Hapus',
+                                ),
+                              ],
+                            ),
                           ),
-                  ),
-          ),
-        ],
-      ),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

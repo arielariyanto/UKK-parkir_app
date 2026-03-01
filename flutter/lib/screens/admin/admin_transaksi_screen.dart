@@ -39,31 +39,19 @@ class _AdminTransaksiScreenState extends State<AdminTransaksiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Data Transaksi'),
-        automaticallyImplyLeading: !isMobile,
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/transaksi') : null,
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/transaksi'),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadTransaksis,
-                    child: transaksis.isEmpty
-                        ? const Center(child: Text('Belum ada transaksi'))
-                        : isMobile
-                            ? _buildMobileList()
-                            : _buildDesktopTable(),
-                  ),
-          ),
-        ],
-      ),
+      drawer: const AdminSidebar(currentRoute: '/admin/transaksi'),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadTransaksis,
+              child: transaksis.isEmpty
+                  ? const Center(child: Text('Belum ada transaksi'))
+                  : _buildMobileList(),
+            ),
     );
   }
 

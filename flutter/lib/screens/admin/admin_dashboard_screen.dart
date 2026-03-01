@@ -41,44 +41,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard Admin'),
-        automaticallyImplyLeading: !isMobile,
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/dashboard') : null,
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/dashboard'),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadDashboard,
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(isMobile ? 16 : 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Stats cards
-                          _buildStatsSection(isMobile),
-                          const SizedBox(height: 24),
-                          
-                          // Area capacity
-                          _buildAreaSection(),
-                        ],
-                      ),
-                    ),
-                  ),
-          ),
-        ],
-      ),
+      drawer: const AdminSidebar(currentRoute: '/admin/dashboard'),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadDashboard,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatsSection(),
+                    const SizedBox(height: 24),
+                    _buildAreaSection(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
-  Widget _buildStatsSection(bool isMobile) {
+  Widget _buildStatsSection() {
     final hariIni = dashboardData?['hari_ini'] ?? {};
     final bulanIni = dashboardData?['bulan_ini'] ?? {};
     
@@ -94,50 +81,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           spacing: 16,
           runSpacing: 16,
           children: [
-            _buildStatCard(
-              'Kendaraan Masuk',
-              '${hariIni['kendaraan_masuk'] ?? 0}',
-              Icons.login,
-              AppTheme.accentColor,
-              isMobile,
-            ),
-            _buildStatCard(
-              'Kendaraan Keluar',
-              '${hariIni['kendaraan_keluar'] ?? 0}',
-              Icons.logout,
-              AppTheme.primaryColor,
-              isMobile,
-            ),
-            _buildStatCard(
-              'Sedang Parkir',
-              '${hariIni['sedang_parkir'] ?? 0}',
-              Icons.local_parking,
-              AppTheme.warningColor,
-              isMobile,
-            ),
-            _buildStatCard(
-              'Pendapatan Hari Ini',
-              Helpers.formatRupiah(hariIni['pendapatan'] ?? 0),
-              Icons.attach_money,
-              AppTheme.accentColor,
-              isMobile,
-            ),
-            _buildStatCard(
-              'Pendapatan Bulan Ini',
-              Helpers.formatRupiah(bulanIni['pendapatan'] ?? 0),
-              Icons.trending_up,
-              AppTheme.secondaryColor,
-              isMobile,
-            ),
+            _buildStatCard('Kendaraan Masuk', '${hariIni['kendaraan_masuk'] ?? 0}', Icons.login, AppTheme.accentColor),
+            _buildStatCard('Kendaraan Keluar', '${hariIni['kendaraan_keluar'] ?? 0}', Icons.logout, AppTheme.primaryColor),
+            _buildStatCard('Sedang Parkir', '${hariIni['sedang_parkir'] ?? 0}', Icons.local_parking, AppTheme.warningColor),
+            _buildStatCard('Pendapatan Hari Ini', Helpers.formatRupiah(hariIni['pendapatan'] ?? 0), Icons.attach_money, AppTheme.accentColor),
+            _buildStatCard('Pendapatan Bulan Ini', Helpers.formatRupiah(bulanIni['pendapatan'] ?? 0), Icons.trending_up, AppTheme.secondaryColor),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, bool isMobile) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
-      width: isMobile ? double.infinity : 220,
+      width: 200,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,

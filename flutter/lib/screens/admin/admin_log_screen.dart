@@ -154,12 +154,9 @@ class _AdminLogScreenState extends State<AdminLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Log Aktivitas'),
-        automaticallyImplyLeading: !isMobile,
         actions: [
           if (_selectedRole != null || _selectedDate != null)
             IconButton(
@@ -174,13 +171,9 @@ class _AdminLogScreenState extends State<AdminLogScreen> {
           ),
         ],
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/log') : null,
-      body: Row(
+      drawer: const AdminSidebar(currentRoute: '/admin/log'),
+      body: Column(
         children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/log'),
-          Expanded(
-            child: Column(
-              children: [
                 // Filter Section
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -411,9 +404,6 @@ class _AdminLogScreenState extends State<AdminLogScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

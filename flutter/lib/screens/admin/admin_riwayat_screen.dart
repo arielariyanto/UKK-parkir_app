@@ -42,12 +42,9 @@ class _AdminRiwayatScreenState extends State<AdminRiwayatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Riwayat Parkir'),
-        automaticallyImplyLeading: !isMobile,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -56,85 +53,78 @@ class _AdminRiwayatScreenState extends State<AdminRiwayatScreen> {
           ),
         ],
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/riwayat') : null,
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/riwayat'),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      drawer: const AdminSidebar(currentRoute: '/admin/riwayat'),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header banner
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.06),
+                    border: Border(
+                      bottom: BorderSide(color: AppTheme.primaryColor.withOpacity(0.15)),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      // Header banner
                       Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.06),
-                          border: Border(
-                            bottom: BorderSide(color: AppTheme.primaryColor.withOpacity(0.15)),
-                          ),
+                          color: AppTheme.primaryColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.manage_accounts, color: AppTheme.primaryColor),
-                            ),
-                            const SizedBox(width: 14),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Pilih Petugas',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '${_petugasList.length} petugas terdaftar',
-                                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        child: const Icon(Icons.manage_accounts, color: AppTheme.primaryColor),
                       ),
-
-                      // List
-                      Expanded(
-                        child: _petugasList.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.person_off, size: 64, color: Colors.grey.shade300),
-                                    const SizedBox(height: 16),
-                                    Text('Tidak ada data petugas',
-                                        style: TextStyle(color: Colors.grey.shade500)),
-                                  ],
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: _loadPetugas,
-                                child: ListView.builder(
-                                  padding: EdgeInsets.all(isMobile ? 16 : 24),
-                                  itemCount: _petugasList.length,
-                                  itemBuilder: (context, index) {
-                                    final petugas = _petugasList[index];
-                                    return _buildPetugasCard(petugas);
-                                  },
-                                ),
-                              ),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Pilih Petugas',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '${_petugasList.length} petugas terdaftar',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-          ),
-        ],
-      ),
+                ),
+
+                // List
+                Expanded(
+                  child: _petugasList.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.person_off, size: 64, color: Colors.grey.shade300),
+                              const SizedBox(height: 16),
+                              Text('Tidak ada data petugas',
+                                  style: TextStyle(color: Colors.grey.shade500)),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadPetugas,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _petugasList.length,
+                            itemBuilder: (context, index) {
+                              final petugas = _petugasList[index];
+                              return _buildPetugasCard(petugas);
+                            },
+                          ),
+                        ),
+                ),
+              ],
+            ),
     );
   }
 

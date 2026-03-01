@@ -28,25 +28,17 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([
-      _loadTarif(),
-      _loadJenisKendaraan(),
-    ]);
+    await Future.wait([_loadTarif(), _loadJenisKendaraan()]);
   }
 
   Future<void> _loadJenisKendaraan() async {
     try {
       final data = await JenisKendaraanService.getAllJenisKendaraan();
-      setState(() {
-        jenisKendaraanList = data;
-      });
+      setState(() => jenisKendaraanList = data);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error memuat jenis kendaraan: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+          SnackBar(content: Text('Error memuat jenis kendaraan: $e'), backgroundColor: AppTheme.errorColor),
         );
       }
     }
@@ -64,10 +56,7 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
       setState(() => isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error memuat data tarif: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+          SnackBar(content: Text('Error memuat data tarif: $e'), backgroundColor: AppTheme.errorColor),
         );
       }
     }
@@ -100,11 +89,7 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
                       child: Text(jenis.jenisKendaraan),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedIdKendaraan = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => selectedIdKendaraan = value),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -133,7 +118,6 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
                   );
                   return;
                 }
-
                 final tarifValue = double.tryParse(tarifController.text);
                 if (tarifValue == null || tarifValue <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -141,21 +125,12 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
                   );
                   return;
                 }
-
                 try {
                   if (tarif == null) {
-                    await TarifService.createTarif(
-                      idKendaraan: selectedIdKendaraan!,
-                      tarifPerJam: tarifValue,
-                    );
+                    await TarifService.createTarif(idKendaraan: selectedIdKendaraan!, tarifPerJam: tarifValue);
                   } else {
-                    await TarifService.updateTarif(
-                      idTarif: tarif.idTarif!,
-                      idKendaraan: selectedIdKendaraan,
-                      tarifPerJam: tarifValue,
-                    );
+                    await TarifService.updateTarif(idTarif: tarif.idTarif!, idKendaraan: selectedIdKendaraan, tarifPerJam: tarifValue);
                   }
-
                   if (context.mounted) {
                     Navigator.pop(context);
                     _loadTarif();
@@ -169,10 +144,7 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: AppTheme.errorColor,
-                      ),
+                      SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
                     );
                   }
                 }
@@ -192,10 +164,7 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
         title: const Text('Konfirmasi'),
         content: Text('Hapus tarif ${tarif.jenisKendaraan}?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
@@ -211,19 +180,13 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
         _loadTarif();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tarif berhasil dihapus'),
-              backgroundColor: AppTheme.accentColor,
-            ),
+            const SnackBar(content: Text('Tarif berhasil dihapus'), backgroundColor: AppTheme.accentColor),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: AppTheme.errorColor,
-            ),
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
           );
         }
       }
@@ -232,94 +195,70 @@ class _AdminTarifScreenState extends State<AdminTarifScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Tarif Parkir'),
-        automaticallyImplyLeading: !isMobile,
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/tarif') : null,
+      drawer: const AdminSidebar(currentRoute: '/admin/tarif'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showTarifDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Tambah Tarif'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Row(
-        children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/tarif'),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadTarif,
-                    child: tarifList.isEmpty
-                        ? const Center(child: Text('Belum ada data tarif'))
-                        : ListView.builder(
-                            padding: EdgeInsets.all(isMobile ? 16 : 24),
-                            itemCount: tarifList.length,
-                            itemBuilder: (context, index) {
-                              final tarif = tarifList[index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                elevation: 2,
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  leading: Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.local_parking,
-                                      color: AppTheme.primaryColor,
-                                      size: 32,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    tarif.jenisKendaraan ?? 'Unknown',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Text(
-                                      '${currencyFormatter.format(tarif.tarifPerJam)} / jam',
-                                      style: TextStyle(
-                                        color: AppTheme.accentColor,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
-                                        onPressed: () => _showTarifDialog(tarif: tarif),
-                                        tooltip: 'Edit',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                        onPressed: () => _deleteTarif(tarif),
-                                        tooltip: 'Hapus',
-                                      ),
-                                    ],
-                                  ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadTarif,
+              child: tarifList.isEmpty
+                  ? const Center(child: Text('Belum ada data tarif'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      itemCount: tarifList.length,
+                      itemBuilder: (context, index) {
+                        final tarif = tarifList[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          elevation: 2,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            leading: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.attach_money, color: AppTheme.primaryColor, size: 32),
+                            ),
+                            title: Text(
+                              tarif.jenisKendaraan ?? 'Unknown',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                            subtitle: Text(
+                              currencyFormatter.format(tarif.tarifPerJam) + ' / jam',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                                  onPressed: () => _showTarifDialog(tarif: tarif),
+                                  tooltip: 'Edit',
                                 ),
-                              );
-                            },
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: AppTheme.errorColor),
+                                  onPressed: () => _deleteTarif(tarif),
+                                  tooltip: 'Hapus',
+                                ),
+                              ],
+                            ),
                           ),
-                  ),
-          ),
-        ],
-      ),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

@@ -274,26 +274,19 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola User'),
-        automaticallyImplyLeading: !isMobile,
       ),
-      drawer: isMobile ? const AdminSidebar(currentRoute: '/admin/users') : null,
+      drawer: const AdminSidebar(currentRoute: '/admin/users'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUserDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Tambah User'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Row(
+      body: Column(
         children: [
-          if (!isMobile) const AdminSidebar(currentRoute: '/admin/users'),
-          Expanded(
-            child: Column(
-              children: [
                 // Filter Section
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -358,7 +351,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           child: filteredUsers.isEmpty
                               ? const Center(child: Text('Tidak ada data user'))
                               : ListView.builder(
-                                  padding: EdgeInsets.all(isMobile ? 16 : 24),
+                                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                                   itemCount: filteredUsers.length,
                                   itemBuilder: (context, index) {
                                     final user = filteredUsers[index];
@@ -422,9 +415,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
