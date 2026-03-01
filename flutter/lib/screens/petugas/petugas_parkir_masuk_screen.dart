@@ -171,6 +171,7 @@ class _PetugasParkirMasukScreenState extends State<PetugasParkirMasukScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text('Parkir Masuk', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
