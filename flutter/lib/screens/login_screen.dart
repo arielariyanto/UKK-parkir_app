@@ -58,11 +58,22 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, route);
     } catch (e) {
       if (!mounted) return;
-      
+
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceAll('Exception: ', '')),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(errorMsg)),
+            ],
+          ),
           backgroundColor: AppTheme.errorColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     } finally {
@@ -165,6 +176,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Password harus diisi';
+                          }
+                          if (value.length < 6) {
+                            return 'Password terlalu pendek, minimal 6 karakter';
+                          }
+                          if (value.length > 6) {
+                            return 'Password terlalu panjang, maksimal 6 karakter';
                           }
                           return null;
                         },

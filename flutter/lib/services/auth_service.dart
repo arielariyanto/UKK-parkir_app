@@ -4,8 +4,12 @@ import '../config/api_config.dart';
 import '../models/user_model.dart';
 import 'api_service.dart';
 
+// Service untuk mengelola autentikasi pengguna
+// Menangani proses login, logout, dan penyimpanan sesi pengguna secara lokal
 class AuthService {
-  // Login
+  // Melakukan login dengan username dan password
+  // Jika berhasil, menyimpan token JWT dan data user ke SharedPreferences
+  // Mengembalikan data user termasuk token dan info profil
   static Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       final response = await ApiService.post(
@@ -19,68 +23,74 @@ class AuthService {
       final data = ApiService.handleResponse(response);
       
       if (data['success']) {
-        // Save token and user info
+        // Simpan token dan data user ke penyimpanan lokal agar sesi tetap ada
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['data']['token']);
-        await prefs.setString('user', jsonEncode(data['data']['user']));
+        await prefs.setString('token', data['data']['token']); // Token JWT untuk autentikasi API
+        await prefs.setString('user', jsonEncode(data['data']['user'])); // Data user sebagai JSON string
         
         return data['data'];
       } else {
         throw Exception(data['message'] ?? 'Login gagal');
       }
     } catch (e) {
-      // Handle different types of errors
+      // Tangani berbagai jenis error jaringan dengan pesan yang ramah pengguna
       if (e.toString().contains('SocketException') || 
           e.toString().contains('Failed host lookup')) {
         throw Exception('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
       } else if (e.toString().contains('TimeoutException')) {
         throw Exception('Koneksi timeout. Silakan coba lagi.');
       } else if (e is Exception) {
-        rethrow;
+        rethrow; // Teruskan Exception yang sudah memiliki pesan (misal dari handleResponse)
       } else {
         throw Exception('Terjadi kesalahan: ${e.toString()}');
       }
     }
   }
 
-  // Logout
+  // Melakukan logout pengguna
+  // Memanggil endpoint logout di server (untuk mengupdate status_aktif ke 0)
+  // lalu menghapus token dan data user dari penyimpanan lokal
   static Future<void> logout() async {
     try {
-      // Panggil API logout untuk set status_aktif = 0
+      // Panggil API logout untuk set status_aktif = 0 di database
       await ApiService.post(ApiConfig.logout, {}, auth: true);
     } catch (e) {
-      // Ignore error, tetap lanjutkan logout
+      // Abaikan error API - tetap lanjutkan proses logout lokal
       print('Logout API error: $e');
     }
     
-    // Hapus token dan user data
+    // Hapus token dan data user dari SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('user');
+    await prefs.remove('token'); // Hapus token JWT
+    await prefs.remove('user');  // Hapus data profil user
   }
 
-  // Get token
+  // Mengambil token JWT dari penyimpanan lokal
+  // Mengembalikan null jika pengguna belum login
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  // Get user info
+  // Mengambil informasi pengguna yang sedang login dari penyimpanan lokal
+  // Data user disimpan sebagai JSON string, diparsing ke objek User
+  // Mengembalikan null jika tidak ada data user tersimpan
   static Future<User?> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user');
     
     if (userJson != null) {
-      final userMap = jsonDecode(userJson);
-      return User.fromJson(userMap);
+      final userMap = jsonDecode(userJson); // Parse JSON string ke Map
+      return User.fromJson(userMap);        // Buat objek User dari Map
     }
     
-    return null;
+    return null; // Belum ada sesi login
   }
 
-  // Check if logged in
+  // Mengecek apakah pengguna sedang dalam keadaan login
+  // Pengecekan dilakukan berdasarkan keberadaan token di penyimpanan lokal
   static Future<bool> isLoggedIn() async {
     final token = await getToken();
-    return token != null;
+    return token != null; // true jika token ada, false jika token tidak ditemukan
   }
 }

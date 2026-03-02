@@ -426,7 +426,7 @@ class _AdminRiwayatDetailScreenState extends State<AdminRiwayatDetailScreen> {
                 // Cetak ulang button
                 ElevatedButton.icon(
                   onPressed: () => _cetakStruk(t),
-                  icon: const Icon(Icons.print, size: 18),
+                  icon: const Icon(Icons.print, size: 18, color: Colors.white),
                   label: const Text('Cetak'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,

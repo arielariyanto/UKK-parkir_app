@@ -10,8 +10,8 @@ router.post('/login', userController.login);
 router.post('/logout', authMiddleware, userController.logout);
 router.get('/profile', authMiddleware, userController.getProfile);
 
-// Admin only
-router.get('/', authMiddleware, roleMiddleware('admin'), userController.getAllUsers);
+// Admin & Owner
+router.get('/', authMiddleware, roleMiddleware('admin', 'owner'), userController.getAllUsers);
 router.post('/register', authMiddleware, roleMiddleware('admin'), userController.register);
 router.put('/:id', authMiddleware, roleMiddleware('admin'), userController.updateUser);
 router.delete('/:id', authMiddleware, roleMiddleware('admin'), userController.deleteUser);
