@@ -34,6 +34,38 @@ const getDashboard = async (req, res) => {
        AND status = 'keluar'`
         );
 
+        // Total pendapatan tahun ini
+        const [pendapatanTahunIni] = await pool.query(
+            `SELECT COALESCE(SUM(biaya_total), 0) as total FROM tb_transaksi 
+       WHERE YEAR(waktu_keluar) = YEAR(CURDATE()) 
+       AND status = 'keluar'`
+        );
+
+        // Grafik pendapatan 7 hari terakhir (per hari)
+        const [grafik7Hari] = await pool.query(
+            `SELECT 
+         DATE(waktu_keluar) as tanggal,
+         COALESCE(SUM(biaya_total), 0) as total
+       FROM tb_transaksi
+       WHERE status = 'keluar'
+         AND waktu_keluar >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+       GROUP BY DATE(waktu_keluar)
+       ORDER BY tanggal ASC`
+        );
+
+        // Grafik pendapatan 12 bulan terakhir (per bulan)
+        const [grafik12Bulan] = await pool.query(
+            `SELECT 
+         DATE_FORMAT(waktu_keluar, '%Y-%m') as bulan,
+         DATE_FORMAT(waktu_keluar, '%b %Y') as label,
+         COALESCE(SUM(biaya_total), 0) as total
+       FROM tb_transaksi
+       WHERE status = 'keluar'
+         AND waktu_keluar >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
+       GROUP BY DATE_FORMAT(waktu_keluar, '%Y-%m'), DATE_FORMAT(waktu_keluar, '%b %Y')
+       ORDER BY bulan ASC`
+        );
+
         // Kapasitas area parkir
         const [kapasitasArea] = await pool.query(
             `SELECT 
@@ -59,18 +91,25 @@ const getDashboard = async (req, res) => {
             success: true,
             data: {
                 hari_ini: {
-                    kendaraan_masuk: masukHariIni[0].total,
-                    kendaraan_keluar: keluarHariIni[0].total,
-                    sedang_parkir: sedangParkir[0].total,
-                    pendapatan: pendapatanHariIni[0].total,
+                    kendaraan_masuk: masukHariIni[0]?.total ?? 0,
+                    kendaraan_keluar: keluarHariIni[0]?.total ?? 0,
+                    sedang_parkir: sedangParkir[0]?.total ?? 0,
+                    pendapatan: pendapatanHariIni[0]?.total ?? 0,
                 },
                 bulan_ini: {
-                    pendapatan: pendapatanBulanIni[0].total,
+                    pendapatan: pendapatanBulanIni[0]?.total ?? 0,
+                },
+                tahun_ini: {
+                    pendapatan: pendapatanTahunIni[0]?.total ?? 0,
+                },
+                grafik: {
+                    tujuh_hari: grafik7Hari,
+                    dua_belas_bulan: grafik12Bulan,
                 },
                 kapasitas: {
-                    total: kapasitasArea[0].total_kapasitas || 0,
-                    terisi: kapasitasArea[0].total_terisi || 0,
-                    tersedia: kapasitasArea[0].tersedia || 0,
+                    total: kapasitasArea[0]?.total_kapasitas || 0,
+                    terisi: kapasitasArea[0]?.total_terisi || 0,
+                    tersedia: kapasitasArea[0]?.tersedia || 0,
                 },
                 area: statistikArea,
             },
