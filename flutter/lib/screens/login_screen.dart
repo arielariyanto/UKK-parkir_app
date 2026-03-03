@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppTheme.primaryColor,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Title
                       Text(
                         'Aplikasi Parkir',
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Username field
                       TextFormField(
                         controller: _usernameController,
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         enabled: !_isLoading,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Password field
                       TextFormField(
                         controller: _passwordController,
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         enabled: !_isLoading,
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Login button
                       ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Register link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -221,7 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: _isLoading
                                 ? null
-                                : () => Navigator.pushNamed(context, '/register'),
+                                : () =>
+                                    Navigator.pushNamed(context, '/register'),
                             child: const Text('Daftar'),
                           ),
                         ],
