@@ -260,12 +260,12 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                                 Icons.logout, Colors.green.shade600),
                             _buildStatCard('Sedang Parkir', '$_sedangParkir',
                                 Icons.local_parking, Colors.orange.shade600),
-                            _buildStatCard(
-                                'Pendapatan',
-                                Helpers.formatRupiah(_totalPendapatan),
-                                Icons.attach_money,
-                                Colors.purple.shade600,
-                                smallText: true),
+                            // _buildStatCard(
+                            //     'Pendapatan',
+                            //     Helpers.formatRupiah(_totalPendapatan),
+                            //     Icons.attach_money,
+                            //     Colors.purple.shade600,
+                            //     smallText: true),
                           ],
                         );
                       },

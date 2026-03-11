@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../config/theme_config.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 
@@ -70,7 +69,6 @@ class OwnerSidebar extends StatelessWidget {
               children: [
                 const SizedBox(height: 8),
                 _buildMenuItem(context, icon: Icons.dashboard, title: 'Dashboard', route: '/owner/dashboard'),
-                _buildMenuItem(context, icon: Icons.receipt_long, title: 'Rekap Transaksi', route: '/owner/laporan'),
                 _buildMenuItem(context, icon: Icons.local_parking, title: 'Riwayat Parkir', route: '/owner/riwayat'),
                 const Divider(height: 1),
                 // Tombol logout dengan warna merah sebagai penanda aksi berbahaya

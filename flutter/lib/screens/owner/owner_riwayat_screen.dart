@@ -5,6 +5,8 @@ import '../../services/user_service.dart';
 import '../../widgets/owner_sidebar.dart';
 import 'owner_riwayat_detail_screen.dart';
 
+// Halaman Riwayat Parkir — Owner memilih petugas terlebih dahulu
+// kemudian melihat transaksi parkir milik petugas yang dipilih
 class OwnerRiwayatScreen extends StatefulWidget {
   const OwnerRiwayatScreen({super.key});
 
@@ -34,7 +36,9 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
+          SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: AppTheme.errorColor),
         );
       }
     }
@@ -44,7 +48,8 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Parkir', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Riwayat Parkir',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.purple.shade700,
         foregroundColor: Colors.white,
         actions: [
@@ -60,7 +65,7 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Header
+                // Header info jumlah petugas
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -78,7 +83,8 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                           color: Colors.purple.shade100,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.manage_accounts, color: Colors.purple.shade700),
+                        child: Icon(Icons.manage_accounts,
+                            color: Colors.purple.shade700),
                       ),
                       const SizedBox(width: 14),
                       Column(
@@ -86,11 +92,13 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                         children: [
                           const Text(
                             'Pilih Petugas',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             '${_petugasList.length} petugas terdaftar',
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            style: TextStyle(
+                                fontSize: 13, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -98,17 +106,19 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                   ),
                 ),
 
-                // Petugas list
+                // Daftar petugas
                 Expanded(
                   child: _petugasList.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.person_off, size: 64, color: Colors.grey.shade300),
+                              Icon(Icons.person_off,
+                                  size: 64, color: Colors.grey.shade300),
                               const SizedBox(height: 16),
                               Text('Tidak ada data petugas',
-                                  style: TextStyle(color: Colors.grey.shade500)),
+                                  style:
+                                      TextStyle(color: Colors.grey.shade500)),
                             ],
                           ),
                         )
@@ -120,20 +130,28 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                             itemBuilder: (context, index) {
                               final petugas = _petugasList[index];
                               final initials = petugas.namaLengkap.isNotEmpty
-                                  ? petugas.namaLengkap.trim().split(' ').map((e) => e[0]).take(2).join().toUpperCase()
+                                  ? petugas.namaLengkap
+                                      .trim()
+                                      .split(' ')
+                                      .map((e) => e[0])
+                                      .take(2)
+                                      .join()
+                                      .toUpperCase()
                                   : 'P';
 
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 14),
                                 elevation: 2,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(14),
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => OwnerRiwayatDetailScreen(
+                                        builder: (_) =>
+                                            OwnerRiwayatDetailScreen(
                                           idUser: petugas.idUser!,
                                           namaPetugas: petugas.namaLengkap,
                                         ),
@@ -146,7 +164,8 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                                       children: [
                                         CircleAvatar(
                                           radius: 28,
-                                          backgroundColor: Colors.purple.shade600,
+                                          backgroundColor:
+                                              Colors.purple.shade600,
                                           child: Text(
                                             initials,
                                             style: const TextStyle(
@@ -159,43 +178,64 @@ class _OwnerRiwayatScreenState extends State<OwnerRiwayatScreen> {
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 petugas.namaLengkap,
-                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
                                                 '@${petugas.username}',
-                                                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    color:
+                                                        Colors.grey.shade600),
                                               ),
                                             ],
                                           ),
                                         ),
                                         Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
-                                                color: petugas.isAktif ? Colors.green.shade50 : Colors.grey.shade100,
-                                                borderRadius: BorderRadius.circular(20),
+                                                color: petugas.isAktif
+                                                    ? Colors.green.shade50
+                                                    : Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                                 border: Border.all(
-                                                  color: petugas.isAktif ? Colors.green.shade200 : Colors.grey.shade300,
+                                                  color: petugas.isAktif
+                                                      ? Colors.green.shade200
+                                                      : Colors.grey.shade300,
                                                 ),
                                               ),
                                               child: Text(
-                                                petugas.isAktif ? 'Aktif' : 'Nonaktif',
+                                                petugas.isAktif
+                                                    ? 'Aktif'
+                                                    : 'Nonaktif',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: petugas.isAktif ? Colors.green.shade700 : Colors.grey.shade600,
+                                                  color: petugas.isAktif
+                                                      ? Colors.green.shade700
+                                                      : Colors.grey.shade600,
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                             ),
                                             const SizedBox(height: 6),
-                                            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                            Icon(Icons.chevron_right,
+                                                color: Colors.grey.shade400),
                                           ],
                                         ),
                                       ],
